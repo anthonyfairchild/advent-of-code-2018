@@ -1,0 +1,32 @@
+* Advent of Code 2018
+** Day 1
+*** Part 1
+#+BEGIN_SRC clojure :results pp
+  (->> "input/day01.txt"
+       slurp
+       clojure.string/split-lines
+       (map #(Integer/parseInt %))
+       (reduce +))
+#+END_SRC
+
+#+RESULTS:
+: 484
+
+*** Part 2
+#+BEGIN_SRC clojure :results pp
+  (->> "input/day01.txt"
+       slurp
+       clojure.string/split-lines
+       (map #(Integer/parseInt %))
+       repeat
+       flatten
+       (reduce (fn [[freqs sum] n]
+                 (let [sum (+ sum n)]
+                   (if (get freqs sum)
+                     (reduced sum)
+                     [(conj freqs sum) sum])))
+               [#{} 0]))
+#+END_SRC
+
+#+RESULTS:
+: 367
