@@ -1,4 +1,88 @@
 * Advent of Code 2018
+** Day 3
+*** Part 1
+#+BEGIN_SRC clojure :results pp
+  (defn parse-input
+    [line]
+    (->> line
+         (map #(re-find #"^#(\d+) @ (\d+),(\d+): (\d+)x(\d+)$" %))
+         (map #(drop 1 %))
+         (map (fn [cs] (map #(Integer/parseInt %) cs)))
+         (map vec)))
+
+  (defn plot-claim
+    [m [id left top width height]]
+    (reduce (fn [m [x y]]
+              (let [x (+ left x)
+                    y (+ top y)]
+                (assoc m [x y] (inc (get m [x y] 0)))))
+            m
+            (for [x (range width)
+                  y (range height)]
+              [x y])))
+
+  (->> "input/day03.txt"
+       slurp
+       clojure.string/split-lines
+       parse-input
+       (reduce plot-claim {})
+       (map second)
+       (filter #(> % 1))
+       count)
+#+END_SRC
+
+#+RESULTS:
+: 100595
+
+*** Part 2
+#+BEGIN_SRC clojure :results pp
+  (defn parse-input
+    [line]
+    (->> line
+         (map #(re-find #"^#(\d+) @ (\d+),(\d+): (\d+)x(\d+)$" %))
+         (map #(drop 1 %))
+         (map (fn [cs] (map #(Integer/parseInt %) cs)))
+         (map vec)))
+
+  (defn plot-claim
+    [m [id left top width height]]
+    (reduce (fn [m [x y]]
+              (let [x (+ left x)
+                    y (+ top y)]
+                (assoc m [x y] (conj (get m [x y] [])
+                                     id))))
+            m
+            (for [x (range width)
+                  y (range height)]
+              [x y])))
+
+  (def input (->> "input/day03.txt"
+                  slurp
+                  clojure.string/split-lines
+                  parse-input))
+
+  (def all-claim-ids (->> input
+                          (map first)
+                          set))
+
+  (defn remove-overlapping-claim
+    [claims cell]
+    (if (= 1 (count cell))
+      claims
+      (clojure.set/difference claims cell)))
+
+  (->> input
+       (reduce plot-claim {})
+       (map second)
+       (map set)
+       (reduce remove-overlapping-claim
+               all-claim-ids)
+       first)
+#+END_SRC
+
+#+RESULTS:
+: 415
+
 ** Day 2
 *** Part 1
 #+BEGIN_SRC clojure :results pp
