@@ -1,4 +1,5 @@
 * Advent of Code 2018
+** Day 4 [[file:src/advent_of_code_2018/day04_1.clj][Part 1]] [[file:src/advent_of_code_2018/day04_2.clj][Part 2]]
 ** Day 3
 *** Part 1
 #+BEGIN_SRC clojure :results pp
