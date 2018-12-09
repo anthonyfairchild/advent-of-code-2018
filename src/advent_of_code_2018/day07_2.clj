@@ -13,11 +13,54 @@
                               duration-offset)}]))
        (into {})))
 
-(defn solve
-  []
-  (let [duration-offset 0
-        workers 2
-        graph (parse-graph "input/day07-test.txt" duration-offset)]
+(defn perform-work
+  [graph active-steps]
+  (let [;; decrement seconds for each active step
+        graph (->> graph
+                   (map (fn [[step {deps :deps seconds :seconds} :as row]]
+                          (if (contains? active-steps step)
+                            [step {:deps deps :seconds (dec seconds)}]
+                            row)))
+                   (into {}))
+        ;; find all finished steps
+        finished-steps (->> graph
+                            (filter (fn [[step {seconds :seconds}]]
+                                      (= seconds 0)))
+                            (map first)
+                            set)
+        ;; remove finished steps from graph
+        graph (->> graph
+                   (filter (fn [[step _]]
+                             (not (contains? finished-steps step))))
+                   (into {}))
+        ;; remove finished steps from dependencies
+        graph (->> graph
+                   (map #(update-in % [1 :deps] clojure.set/difference finished-steps))
+                   (into {}))]
     graph))
 
+(defn available
+  [num-workers graph]
+  (->> graph
+       (filter (fn [[step {deps :deps}]]
+                 (empty? deps)))
+       (take num-workers)
+       (map first)
+       set))
+
+(defn solve
+  []
+  (let [duration-offset 60
+        num-workers 5
+        graph (parse-graph "input/day07.txt" duration-offset)]
+    (loop [graph graph
+           second 0]
+      (let [available (available num-workers graph)]
+        (if (empty? graph)
+          second
+          (do
+            (recur (perform-work graph available)
+                  (inc second))))))))
+
 #_(solve)
+;; => 987
