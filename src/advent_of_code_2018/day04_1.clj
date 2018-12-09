@@ -1,7 +1,8 @@
-(ns advent-of-code-2018.day04
-  (:require [clojure.string :as str]))
+(ns advent-of-code-2018.day04-1
+  (:require [advent-of-code-2018.utils :as u]))
 
-(defn parse-line [line]
+(defn parse-line
+  [line]
   (let [[_ date minute cmd guard] (some #(re-find % line)
                                       [#"^\[(.+) \d\d:(\d\d)\] (wakes up)$"
                                        #"^\[(.+) \d\d:(\d\d)\] (falls asleep)$"
@@ -9,7 +10,8 @@
     (-> {:date date :minute minute :cmd cmd :guard guard}
         (update :minute #(Integer/parseInt %)))))
 
-(defn combine-data [recs]
+(defn combine-data
+  [recs]
   (->> recs
        (reduce (fn [[acc current-guard] {cmd :cmd guard :guard :as rec}]
                  (case cmd
@@ -18,7 +20,8 @@
                [[] nil])
        first))
 
-(defn expand-minutes [recs]
+(defn expand-minutes
+  [recs]
   (mapcat (fn [[{:keys [guard date] a-cmd :cmd a-minute :minute :as a}
                 {b-cmd :cmd b-minute :minute :as b}]]             
             (map (fn [minute]
@@ -26,14 +29,16 @@
                  (range a-minute b-minute)))
           recs))
 
-(defn most-minute [sleeps]
+(defn most-minute
+  [sleeps]
   (->> sleeps
        (group-by :sleep-minute)
        (map (fn [[minute minutes]]
               {:minute minute :count (count minutes)}))
        (apply max-key :count)))
 
-(defn most-sleep [sleeps]
+(defn most-sleep
+  [sleeps]
   (->> sleeps
        (group-by :guard)
        (map (fn [[g sleeps]]
@@ -42,21 +47,23 @@
                :sleeps sleeps}))
        (apply max-key :minutes-slept)))
 
-(->> "input/day04.txt"
-     slurp
-     str/split-lines
-     sort
-     (map parse-line)
-     combine-data
-     (partition 2)
-     expand-minutes
-     ((fn [sleeps]
-        (let [best-guard (most-sleep sleeps)]
-          (* (:guard best-guard)
-             (:minute (most-minute (:sleeps best-guard)))))))
-     (= 87681)
-     assert)
+(defn parse-data
+  [lines]
+  (->> lines
+       sort
+       (map parse-line)
+       combine-data
+       (partition 2)
+       expand-minutes))
 
+(defn solve
+  []
+  (let [sleeps (->> "input/day04.txt"
+                    u/file-lines
+                    parse-data)
+        {:keys [guard sleeps]} (most-sleep sleeps)]
+    (* guard
+       (:minute (most-minute sleeps)))))
 
-
-
+#_ (solve)
+;; => 87681
